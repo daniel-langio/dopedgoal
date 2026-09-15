@@ -107,4 +107,11 @@ data class Brick(
     }
 
     val width: Float get() = BRICK_WIDTH * aspect
+
+    /**
+     * The stream for one layer of this brick's appearance — `grain`, `paint`,
+     * `crack`, `chip`, `artifact`. Texture geometry is re-derived on every draw
+     * rather than stored, so these streams are a frozen contract. See [Rng].
+     */
+    fun rng(salt: String): Rng = Rng(seed).salted(salt)
 }

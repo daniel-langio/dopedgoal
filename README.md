@@ -76,10 +76,14 @@ to update an already-installed app.
 
 ## Status
 
-Scaffold. The domain types and their constraints are in place and tested; the
-three top-level destinations exist as placeholders. Brick minting, the Compose
-Canvas renderer and the real screens are next — see
+Pre-MVP. The domain types, their constraints and deterministic minting are in
+place and tested; the three top-level destinations exist as placeholders. The
+Compose Canvas renderer, local persistence and the real screens are next — see
 [the first-build scope](ANDROID_DESIGN.md#recommended-first-build-scope).
+
+Minting is deterministic from a frozen generator contract — read the note on
+[`Rng`](core/src/main/kotlin/app/dopedgoal/core/Rng.kt) before changing anything
+it touches.
 
 The visual reference material (`bricks.py`, `banners.py`, the HTML prototypes
 and SVG catalogs) lives outside this repository. It is reference for the
