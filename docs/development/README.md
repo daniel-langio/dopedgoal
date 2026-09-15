@@ -44,3 +44,5 @@ Remaining risk, technical debt, or a clearly stated “None”.
 - [2026-09-15 — AGP 9 rejects the `kotlin-android` plugin](2026-09-15-agp9-rejects-kotlin-android-plugin.md) — resolved
 - [2026-09-15 — Lint's `ObsoleteSdkInt` fix silently deletes the launcher icon](2026-09-15-adaptive-icon-anydpi-qualifier.md) — resolved
 - [2026-09-15 — Porting `mint()` cannot reuse Python's RNG stream](2026-09-15-porting-python-rng-determinism.md) — investigating
+- [2026-09-15 — Release automation writes to main](2026-09-15-release-automation-hazards.md) — accepted-risk
+- [2026-09-15 — A commit message describing the skip-ci marker skipped CI](2026-09-15-skip-ci-in-commit-message-body.md) — resolved
