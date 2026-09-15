@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Doped Goal</string>
+
+    <string name="nav_today">Today</string>
+    <string name="nav_goals">Goals</string>
+    <string name="nav_archive">Archive</string>
+
+    <string name="today_empty_title">Your first brick is waiting.</string>
+
+    <string name="goals_empty">Walls you are building will show up here.</string>
+    <string name="archive_empty">Finished walls are kept here, exactly as you built them.</string>
+</resources>
