@@ -28,16 +28,7 @@ class GoalTest {
         emoji = "📚",
         cohesion = Cohesion.DEFAULT,
         style = WallStyle(Material.CLAY, 20f, 50f, 0.4f, PaintPattern.BANDED),
-        banner = Banner(
-            goalId = "goal-1",
-            silhouette = Silhouette.POINTED,
-            division = Division.PER_PALE,
-            cloth = Cloth.LINEN,
-            trim = Trim.TASSELS,
-            fray = Fray(holes = 1, hemFade = 0.3f),
-            charge = "📚",
-            seed = 7L,
-        ),
+        banner = mintBanner(goalId = "goal-1", charge = "📚"),
         tasks = tasks,
         createdAt = 0L,
     )
@@ -79,7 +70,16 @@ class GoalTest {
     @Test
     fun `fringe cannot hang from a swallowtail`() {
         assertFailsWith<IllegalArgumentException> {
-            Banner("goal-1", Silhouette.SWALLOWTAIL, Division.PLAIN, Cloth.SILK, Trim.FRINGE, Fray(0, 0f), "📚", 1L)
+            Banner(
+                goalId = "goal-1",
+                silhouette = Silhouette.SWALLOWTAIL,
+                division = Division.PLAIN,
+                cloth = Cloth(ClothKind.SILK, 200f, 50f, 40f),
+                trim = Trim.FRINGE,
+                fray = Fray(holes = 0, hem = 0f, fade = 0f),
+                charge = Charge("📚"),
+                seed = 1L,
+            )
         }
     }
 
