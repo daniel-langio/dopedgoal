@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -20,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -43,6 +46,7 @@ private enum class Destination(
 ) {
     TODAY("today", R.string.nav_today, Icons.Outlined.DateRange),
     GOALS("goals", R.string.nav_goals, Icons.Outlined.Star),
+    CREATE_GOAL("create-goal", R.string.nav_create_goal, Icons.Outlined.DateRange),
     ARCHIVE("archive", R.string.nav_archive, Icons.Outlined.CheckCircle),
 }
 
@@ -90,6 +94,9 @@ fun DopedGoalApp(modifier: Modifier = Modifier) {
             composable(Destination.GOALS.route) {
                 Placeholder(R.string.goals_empty)
             }
+            composable(Destination.CREATE_GOAL.route) {
+                CreateGoalScreen()
+            }
             composable(Destination.ARCHIVE.route) {
                 Placeholder(R.string.archive_empty)
             }
@@ -123,5 +130,24 @@ private fun Placeholder(@StringRes message: Int, modifier: Modifier = Modifier) 
 private fun DopedGoalAppPreview() {
     DopedGoalTheme {
         DopedGoalApp()
+    }
+}
+
+/**
+ * Minimal Create Goal screen — shown when navigating to the create-goal destination.
+ * TODO: replace with full form implementation matching CONTEXT.md spec.
+ */
+@Composable
+private fun CreateGoalScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("Create Goal Screen", style = MaterialTheme.typography.titleLarge)
+        Text("Goal creation UI under development", style = MaterialTheme.typography.bodyMedium)
+        Button(onClick = { }) {
+            Text("Back")
+        }
     }
 }

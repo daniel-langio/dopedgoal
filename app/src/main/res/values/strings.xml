@@ -4,6 +4,7 @@
 
     <string name="nav_today">Today</string>
     <string name="nav_goals">Goals</string>
+    <string name="nav_create_goal">Create Goal</string>
     <string name="nav_archive">Archive</string>
 
     <string name="today_empty_title">Your first brick is waiting.</string>
