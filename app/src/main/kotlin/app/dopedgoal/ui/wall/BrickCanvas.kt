@@ -740,10 +740,9 @@ private fun DrawScope.drawEmblem(brick: Brick, lod: BrickLod) {
         textPaint.alpha = alpha
         val metrics = textPaint.fontMetrics
         val baselineY = y - (metrics.ascent + metrics.descent) / 2f + dy
-        nativeCanvas.save()
-        nativeCanvas.rotate(emblem.angle, x, y)
-        nativeCanvas.drawText(emblem.char, x, baselineY, textPaint)
-        nativeCanvas.restore()
+        rotate(emblem.angle, Offset(x, y)) {
+            nativeCanvas.drawText(emblem.char, x, baselineY, textPaint)
+        }
     }
 
     if (lod == BrickLod.Thumbnail) {

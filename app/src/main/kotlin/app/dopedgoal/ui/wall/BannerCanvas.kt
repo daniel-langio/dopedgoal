@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -421,10 +422,9 @@ private fun DrawScope.drawCharge(banner: Banner) {
 
     fun drawGlyph(dy: Float, colorFilter: android.graphics.ColorFilter?) {
         textPaint.colorFilter = colorFilter
-        nativeCanvas.save()
-        nativeCanvas.rotate(charge.angle, x, y)
-        nativeCanvas.drawText(charge.char, x, baselineY + dy, textPaint)
-        nativeCanvas.restore()
+        rotate(charge.angle, Offset(x, y)) {
+            nativeCanvas.drawText(charge.char, x, baselineY + dy, textPaint)
+        }
     }
 
     drawGlyph(
