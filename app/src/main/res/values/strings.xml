@@ -4,7 +4,6 @@
 
     <string name="nav_today">Today</string>
     <string name="nav_goals">Goals</string>
-    <string name="nav_create_goal">Create Goal</string>
     <string name="nav_archive">Archive</string>
 
     <!-- Today screen -->
@@ -45,7 +44,10 @@
     <string name="create_goal_wall_character">Wall character</string>
     <string name="create_goal_wild">wild</string>
     <string name="create_goal_tame">tame</string>
-    <string name="create_goal_create">Create goal · %1$d bricks</string>
+    <plurals name="create_goal_create">
+        <item quantity="one">Create goal · 1 brick</item>
+        <item quantity="other">Create goal · %1$d bricks</item>
+    </plurals>
     <string name="create_goal_create_anyway">Create anyway</string>
     <string name="create_goal_large_wall_warning">This is a big wall. Want to split it into two goals?</string>
     <string name="content_desc_delete_task">Remove task</string>

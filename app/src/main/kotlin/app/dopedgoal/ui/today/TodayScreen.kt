@@ -123,7 +123,8 @@ fun TodayScreen(
             }
 
             // Next brick card
-            viewModel.nextBrick.value?.let { (goal, brickIndex) ->
+            val nextBrick = viewModel.nextBrick.collectAsStateWithLifecycle(initialValue = null)
+            nextBrick.value?.let { (goal, brickIndex) ->
                 val task = goal.tasks[brickIndex]
                 val placedMessage = stringResource(R.string.snackbar_brick_placed, goal.placedCount + 1, goal.total)
                 val undoLabel = stringResource(R.string.snackbar_undo)
