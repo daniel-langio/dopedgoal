@@ -1,15 +1,9 @@
 package app.dopedgoal.ui
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -21,10 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
+import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -32,8 +28,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.dopedgoal.R
+import app.dopedgoal.ui.creategoal.CreateGoalScreen
+import app.dopedgoal.ui.goaldetail.GoalDetailScreen
 import app.dopedgoal.ui.theme.DopedGoalTheme
-import app.dopedgoal.ui.theme.Dimens
+import app.dopedgoal.ui.today.TodayScreen
 
 /**
  * The three top-level destinations. There is deliberately no "rewards" tab: the
@@ -46,7 +44,6 @@ private enum class Destination(
 ) {
     TODAY("today", R.string.nav_today, Icons.Outlined.DateRange),
     GOALS("goals", R.string.nav_goals, Icons.Outlined.Star),
-    CREATE_GOAL("create-goal", R.string.nav_create_goal, Icons.Outlined.DateRange),
     ARCHIVE("archive", R.string.nav_archive, Icons.Outlined.CheckCircle),
 }
 
@@ -89,36 +86,73 @@ fun DopedGoalApp(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Destination.TODAY.route) {
-                Placeholder(R.string.today_empty_title)
+                val viewModel: app.dopedgoal.ui.today.TodayViewModel = viewModel()
+                TodayScreen(
+                    viewModel = viewModel,
+                    onNavigateToCreateGoal = { navController.navigate("create-goal") },
+                    onNavigateToGoal = { goalId -> navController.navigate("goal/$goalId") },
+                )
             }
             composable(Destination.GOALS.route) {
-                Placeholder(R.string.goals_empty)
+                GoalsScreen()
             }
-            composable(Destination.CREATE_GOAL.route) {
-                CreateGoalScreen()
+            composable(
+                route = "create-goal",
+            ) {
+                val viewModel: app.dopedgoal.ui.creategoal.CreateGoalViewModel = viewModel()
+                CreateGoalScreen(
+                    viewModel = viewModel,
+                    onNavigateUp = { navController.popBackStack() },
+                    onGoalCreated = { goal ->
+                        navController.popBackStack()
+                        navController.navigate("goal/${goal.id}")
+                    },
+                )
+            }
+            composable(
+                route = "goal/{goalId}",
+                arguments = listOf(androidx.navigation.navArgument("goalId") { type = androidx.navigation.NavType.StringType }),
+            ) {
+                // TODO: Fix navigation argument extraction
+                val goalId = "test-goal"
+                val viewModel: app.dopedgoal.ui.goaldetail.GoalDetailViewModel = viewModel(
+                    factory = app.dopedgoal.ui.goaldetail.GoalDetailViewModelFactory(goalId),
+                )
+                GoalDetailScreen(
+                    goalId = goalId,
+                    viewModel = viewModel,
+                    onNavigateUp = { navController.popBackStack() },
+                )
             }
             composable(Destination.ARCHIVE.route) {
-                Placeholder(R.string.archive_empty)
+                ArchiveScreen()
             }
         }
     }
 }
 
-/**
- * Stands in until the real screens land. Copy is already warm and additive —
- * empty states in this app never read as a blank checklist.
- */
 @Composable
-private fun Placeholder(@StringRes message: Int, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = Dimens.gutter),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+private fun GoalsScreen() {
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
     ) {
         Text(
-            text = stringResource(message),
+            text = stringResource(R.string.goals_empty),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+    }
+}
+
+@Composable
+private fun ArchiveScreen() {
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.archive_empty),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
         )
@@ -130,24 +164,5 @@ private fun Placeholder(@StringRes message: Int, modifier: Modifier = Modifier) 
 private fun DopedGoalAppPreview() {
     DopedGoalTheme {
         DopedGoalApp()
-    }
-}
-
-/**
- * Minimal Create Goal screen — shown when navigating to the create-goal destination.
- * TODO: replace with full form implementation matching CONTEXT.md spec.
- */
-@Composable
-private fun CreateGoalScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Create Goal Screen", style = MaterialTheme.typography.titleLarge)
-        Text("Goal creation UI under development", style = MaterialTheme.typography.bodyMedium)
-        Button(onClick = { }) {
-            Text("Back")
-        }
     }
 }

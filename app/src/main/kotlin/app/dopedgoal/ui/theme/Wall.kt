@@ -28,14 +28,27 @@ val LocalWallColors = staticCompositionLocalOf {
  * bricks read as a different material from the UI containing them.
  */
 object Dimens {
+    val spacingXSmall: Dp = 4.dp
+    val spacingSmall: Dp = 8.dp
+    val spacingMedium: Dp = 16.dp
+    val spacingLarge: Dp = 24.dp
+    val spacingXLarge: Dp = 32.dp
+
     val gutter: Dp = 20.dp
     val gutterCompact: Dp = 16.dp
+
     val cardCorner: Dp = 16.dp
     val brickCorner: Dp = 4.dp
     val minTouchTarget: Dp = 48.dp
+
     val nextBrickCard: Dp = 64.dp
     val taskRow: Dp = 52.dp
     val brickThumb: Dp = 56.dp
+
+    val miniBannerWidth: Dp = 40.dp
+    val miniBannerHeight: Dp = 65.dp
+    val miniWallWidth: Dp = 120.dp
+    val miniWallHeight: Dp = 65.dp
 }
 
 val MaterialTheme.wall: WallColors
