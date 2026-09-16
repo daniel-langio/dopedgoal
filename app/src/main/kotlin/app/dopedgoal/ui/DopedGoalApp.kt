@@ -86,7 +86,9 @@ fun DopedGoalApp(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Destination.TODAY.route) {
-                val viewModel: app.dopedgoal.ui.today.TodayViewModel = viewModel()
+                val viewModel: app.dopedgoal.ui.today.TodayViewModel = viewModel(
+                    factory = app.dopedgoal.ui.today.TodayViewModelFactory(),
+                )
                 TodayScreen(
                     viewModel = viewModel,
                     onNavigateToCreateGoal = { navController.navigate("create-goal") },
