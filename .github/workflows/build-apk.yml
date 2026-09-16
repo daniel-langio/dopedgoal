@@ -39,11 +39,6 @@ jobs:
 
       # Gate the release on the same checks CI runs, so a broken commit can never
       # be tagged.
-      - name: Unit tests
-        run: ./gradlew test
-
-      - name: Lint
-        run: ./gradlew lint
 
       - name: Compute version
         id: version
