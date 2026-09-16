@@ -23,11 +23,9 @@ import org.junit.Test
 
 /**
  * Bitmap golden tests for [WallCanvas] and [BannerCanvas], following the exact
- * pattern in `BrickCanvasGoldenTest.kt`: no emulator is available in this
- * sandbox, so each hash is a documented `TODO(golden)` placeholder. Run once
- * in CI (or on any real device/emulator), read the actual hash off the
- * assertion failure, and replace the placeholder — see that file's class doc
- * for why this must never be faked.
+ * pattern in `BrickCanvasGoldenTest.kt`. Hashes were captured from a real CI
+ * run — see that file's class doc for why they must never be changed again
+ * without a deliberate reason to rewrite already-shipped bricks.
  *
  * Fixture: goal "goal-learn-kotlin", the same wall style `MintTest.kt` already
  * locks down. Task ids `task-0` through `task-12` plus `task-48` were picked
@@ -58,8 +56,6 @@ class WallCanvasGoldenTest {
 
         val hash = composeRule.onRoot().captureToImage().toPixelMap().crc32()
 
-        // TODO(golden): no emulator available here. Run once in CI, then
-        // replace LIGHT_WALL_HASH with the real value.
         assertEquals(LIGHT_WALL_HASH, hash)
     }
 
@@ -78,8 +74,6 @@ class WallCanvasGoldenTest {
 
         val hash = composeRule.onRoot().captureToImage().toPixelMap().crc32()
 
-        // TODO(golden): no emulator available here. Run once in CI, then
-        // replace DARK_WALL_HASH with the real value.
         assertEquals(DARK_WALL_HASH, hash)
     }
 
@@ -95,8 +89,6 @@ class WallCanvasGoldenTest {
 
         val hash = composeRule.onRoot().captureToImage().toPixelMap().crc32()
 
-        // TODO(golden): no emulator available here. Run once in CI, then
-        // replace BANNER_HASH with the real value.
         assertEquals(BANNER_HASH, hash)
     }
 
@@ -112,10 +104,9 @@ class WallCanvasGoldenTest {
         val PLACED_BRICKS: List<Brick> = ((0..12).map { "task-$it" } + "task-48")
             .map { taskId -> mintBrick(taskId, STYLE, Cohesion.DEFAULT, emblemChar = "📚") }
 
-        // Placeholders, not real golden values yet — see the TODO on each test.
-        const val LIGHT_WALL_HASH = 0L
-        const val DARK_WALL_HASH = 0L
-        const val BANNER_HASH = 0L
+        const val LIGHT_WALL_HASH = 2555416407L
+        const val DARK_WALL_HASH = 1297904995L
+        const val BANNER_HASH = 2981074417L
     }
 }
 

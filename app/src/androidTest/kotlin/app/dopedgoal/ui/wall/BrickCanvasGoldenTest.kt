@@ -57,12 +57,6 @@ class BrickCanvasGoldenTest {
 
         val hash = composeRule.onRoot().captureToImage().toPixelMap().crc32()
 
-        // TODO(golden): no emulator is available in this sandbox to actually
-        // run this instrumentation test. Run it once in CI (or on any real
-        // device/emulator), read the actual hash from the assertion failure
-        // (or a logged println(hash)), and replace FULL_LOD_HASH below with
-        // that value. Do not change it again without a deliberate reason to
-        // rewrite already-shipped bricks — see the class doc.
         assertEquals(FULL_LOD_HASH, hash)
     }
 
@@ -80,18 +74,14 @@ class BrickCanvasGoldenTest {
 
         val hash = composeRule.onRoot().captureToImage().toPixelMap().crc32()
 
-        // TODO(golden): same caveat as fullLodBrickMatchesGoldenHash — no
-        // local emulator. Run once in CI and paste the real hash in place of
-        // THUMBNAIL_LOD_HASH below.
         assertEquals(THUMBNAIL_LOD_HASH, hash)
     }
 
     private companion object {
         const val GOAL = "goal-learn-kotlin"
 
-        // Placeholders, not real golden values yet — see the TODO on each test.
-        const val FULL_LOD_HASH = 0L
-        const val THUMBNAIL_LOD_HASH = 0L
+        const val FULL_LOD_HASH = 2715681868L
+        const val THUMBNAIL_LOD_HASH = 4217217427L
     }
 }
 
