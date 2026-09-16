@@ -10,6 +10,7 @@ and no brick is ever lost.
 
 - [`ANDROID_DESIGN.md`](ANDROID_DESIGN.md) — design direction, screens, tokens, accessibility rules
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — commit conventions, CI expectations, development notes
+- [`docs/IMPLEMENTATION.md`](docs/IMPLEMENTATION.md) — what to build next, and the constraints that govern it
 - [`docs/development/`](docs/development/README.md) — bugs and struggles encountered while building
 
 ## Modules
