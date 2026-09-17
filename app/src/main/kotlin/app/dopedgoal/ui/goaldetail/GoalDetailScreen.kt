@@ -56,6 +56,7 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -323,7 +324,9 @@ private fun BrickDetailDialog(task: Task, onDismiss: () -> Unit) {
                 Text(stringResource(R.string.brick_detail_material, brick.material.name.lowercase()))
                 Text(stringResource(R.string.brick_detail_pattern, brick.paint.pattern.name.lowercase()))
                 val kintsugiSuffix = if (brick.wear.kintsugi) stringResource(R.string.brick_detail_kintsugi) else ""
-                Text(stringResource(R.string.brick_detail_wear, brick.wear.cracks, brick.wear.chips, kintsugiSuffix))
+                val cracksText = pluralStringResource(R.plurals.brick_detail_cracks, brick.wear.cracks, brick.wear.cracks)
+                val chipsText = pluralStringResource(R.plurals.brick_detail_chips, brick.wear.chips, brick.wear.chips)
+                Text(stringResource(R.string.brick_detail_wear, cracksText, chipsText, kintsugiSuffix))
                 val artifactKind = brick.artifact.kind
                 if (artifactKind != null) {
                     Text(stringResource(R.string.brick_detail_artifact, artifactKind.name.lowercase(), brick.artifact.count))

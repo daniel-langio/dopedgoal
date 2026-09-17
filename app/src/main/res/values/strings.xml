@@ -35,7 +35,15 @@
     <string name="brick_detail_title">Brick details</string>
     <string name="brick_detail_material">Material: %1$s</string>
     <string name="brick_detail_pattern">Paint pattern: %1$s</string>
-    <string name="brick_detail_wear">Wear: %1$d cracks, %2$d chips%3$s</string>
+    <string name="brick_detail_wear">Wear: %1$s, %2$s%3$s</string>
+    <plurals name="brick_detail_cracks">
+        <item quantity="one">%1$d crack</item>
+        <item quantity="other">%1$d cracks</item>
+    </plurals>
+    <plurals name="brick_detail_chips">
+        <item quantity="one">%1$d chip</item>
+        <item quantity="other">%1$d chips</item>
+    </plurals>
     <string name="brick_detail_kintsugi">, kintsugi</string>
     <string name="brick_detail_artifact">Artifact: %1$s ×%2$d</string>
     <string name="brick_detail_no_artifact">Artifact: none</string>
