@@ -26,6 +26,27 @@
     <string name="content_desc_more">More options</string>
     <string name="content_desc_complete">Complete</string>
     <string name="content_desc_incomplete">Incomplete</string>
+    <string name="menu_delete_goal">Delete goal</string>
+    <string name="delete_goal_dialog_title">Delete this goal?</string>
+    <string name="delete_goal_dialog_message">This removes the saved wall. This can\'t be undone.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_close">Close</string>
+    <string name="brick_detail_title">Brick details</string>
+    <string name="brick_detail_material">Material: %1$s</string>
+    <string name="brick_detail_pattern">Paint pattern: %1$s</string>
+    <string name="brick_detail_wear">Wear: %1$s, %2$s%3$s</string>
+    <plurals name="brick_detail_cracks">
+        <item quantity="one">%1$d crack</item>
+        <item quantity="other">%1$d cracks</item>
+    </plurals>
+    <plurals name="brick_detail_chips">
+        <item quantity="one">%1$d chip</item>
+        <item quantity="other">%1$d chips</item>
+    </plurals>
+    <string name="brick_detail_kintsugi">, kintsugi</string>
+    <string name="brick_detail_artifact">Artifact: %1$s ×%2$d</string>
+    <string name="brick_detail_no_artifact">Artifact: none</string>
 
     <!-- Create goal - Step 1 -->
     <string name="create_goal_step1_title">What are you building?</string>

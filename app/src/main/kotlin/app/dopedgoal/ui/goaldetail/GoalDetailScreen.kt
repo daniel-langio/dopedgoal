@@ -18,25 +18,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -49,6 +56,7 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -80,6 +88,11 @@ fun GoalDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var placeSheetTask by remember { mutableStateOf<Task?>(null) }
+    var detailTask by remember { mutableStateOf<Task?>(null) }
+
     goal?.let { goal ->
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -99,8 +112,19 @@ fun GoalDetailScreen(
                     },
                     actions = {
                         if (!goal.isAchieved) {
-                            IconButton(onClick = { /* TODO: menu */ }) {
-                                Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.content_desc_more))
+                            Box {
+                                IconButton(onClick = { showMenu = true }) {
+                                    Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.content_desc_more))
+                                }
+                                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.menu_delete_goal)) },
+                                        onClick = {
+                                            showMenu = false
+                                            showDeleteConfirm = true
+                                        },
+                                    )
+                                }
                             }
                         }
                     },
@@ -142,9 +166,9 @@ fun GoalDetailScreen(
                     goal = goal,
                     onTaskClick = { task ->
                         if (!task.isComplete) {
-                            showPlaceBottomSheet(task, goal, viewModel, scope)
+                            placeSheetTask = task
                         } else {
-                            // TODO: Show brick detail
+                            detailTask = task
                         }
                     },
                 )
@@ -171,7 +195,152 @@ fun GoalDetailScreen(
                 }
             }
         }
+
+        if (showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                title = { Text(stringResource(R.string.delete_goal_dialog_title)) },
+                text = { Text(stringResource(R.string.delete_goal_dialog_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteConfirm = false
+                        viewModel.deleteGoal()
+                        onNavigateUp()
+                    }) {
+                        Text(stringResource(R.string.action_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirm = false }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                },
+            )
+        }
+
+        placeSheetTask?.let { task ->
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = { placeSheetTask = null },
+                sheetState = sheetState,
+            ) {
+                PlaceBrickSheetContent(
+                    task = task,
+                    onCancel = {
+                        scope.launch {
+                            sheetState.hide()
+                            placeSheetTask = null
+                        }
+                    },
+                    onConfirm = {
+                        scope.launch {
+                            viewModel.completeTask(task)
+                            sheetState.hide()
+                            placeSheetTask = null
+                        }
+                    },
+                )
+            }
+        }
+
+        detailTask?.let { task ->
+            BrickDetailDialog(task = task, onDismiss = { detailTask = null })
+        }
     }
+}
+
+@Composable
+private fun PlaceBrickSheetContent(
+    task: Task,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(Dimens.gutter),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Dimens.spacingMedium),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(96.dp, 42.dp)
+                .clipToBounds(),
+        ) {
+            BrickCanvas(
+                brick = task.brick,
+                modifier = Modifier.size(96.dp, 42.dp),
+                lod = BrickLod.Full,
+            )
+        }
+        Text(
+            text = task.name,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Dimens.spacingMedium),
+        ) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.action_cancel))
+            }
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.button_place_brick))
+            }
+        }
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(Dimens.spacingMedium))
+    }
+}
+
+@Composable
+private fun BrickDetailDialog(task: Task, onDismiss: () -> Unit) {
+    val brick = task.brick
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.brick_detail_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.spacingSmall)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .clipToBounds(),
+                ) {
+                    BrickCanvas(
+                        brick = brick,
+                        modifier = Modifier.size(120.dp, 52.dp),
+                        lod = BrickLod.Full,
+                    )
+                }
+                Text(task.name, style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.brick_detail_material, brick.material.name.lowercase()))
+                Text(stringResource(R.string.brick_detail_pattern, brick.paint.pattern.name.lowercase()))
+                val kintsugiSuffix = if (brick.wear.kintsugi) stringResource(R.string.brick_detail_kintsugi) else ""
+                val cracksText = pluralStringResource(R.plurals.brick_detail_cracks, brick.wear.cracks, brick.wear.cracks)
+                val chipsText = pluralStringResource(R.plurals.brick_detail_chips, brick.wear.chips, brick.wear.chips)
+                Text(stringResource(R.string.brick_detail_wear, cracksText, chipsText, kintsugiSuffix))
+                val artifactKind = brick.artifact.kind
+                if (artifactKind != null) {
+                    Text(stringResource(R.string.brick_detail_artifact, artifactKind.name.lowercase(), brick.artifact.count))
+                } else {
+                    Text(stringResource(R.string.brick_detail_no_artifact))
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_close))
+            }
+        },
+    )
 }
 
 @Composable
@@ -376,20 +545,6 @@ private fun TaskRow(
                 modifier = Modifier.weight(1f),
             )
         }
-    }
-}
-
-private fun showPlaceBottomSheet(
-    task: Task,
-    goal: Goal,
-    viewModel: GoalDetailViewModel,
-    scope: kotlinx.coroutines.CoroutineScope,
-) {
-    // This would show a ModalBottomSheet in a real implementation
-    // For now, we'll just call complete directly with a confirmation
-    // TODO: Implement proper bottom sheet
-    scope.launch {
-        viewModel.completeTask(task)
     }
 }
 

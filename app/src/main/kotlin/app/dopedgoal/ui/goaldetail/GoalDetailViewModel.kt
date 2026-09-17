@@ -51,5 +51,11 @@ class GoalDetailViewModel(
         _undoSnackbar.value = null
     }
 
+    fun deleteGoal() {
+        viewModelScope.launch {
+            repository.deleteGoal(goalId)
+        }
+    }
+
     data class UndoState(val taskId: String, val completedAt: Long)
 }
