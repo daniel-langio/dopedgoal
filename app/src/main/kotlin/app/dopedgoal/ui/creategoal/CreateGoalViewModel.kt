@@ -68,12 +68,13 @@ class CreateGoalViewModel : ViewModel() {
 
     fun addTask() {
         val taskId = "task-${_nextBrickIndex}"
+        val ordinal = _nextBrickIndex + 1
         _nextBrickIndex++
         val brick = mintBrick(taskId, tempWallStyle(), cohesion, emoji)
         val task = Task(
             id = taskId,
             goalId = "temp",
-            name = "",
+            name = "Task $ordinal",
             brick = brick,
         )
         tasks.add(task)
