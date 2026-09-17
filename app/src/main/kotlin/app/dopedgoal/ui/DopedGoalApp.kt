@@ -114,9 +114,8 @@ fun DopedGoalApp(modifier: Modifier = Modifier) {
             composable(
                 route = "goal/{goalId}",
                 arguments = listOf(androidx.navigation.navArgument("goalId") { type = androidx.navigation.NavType.StringType }),
-            ) {
-                // TODO: Fix navigation argument extraction
-                val goalId = "test-goal"
+            ) { backStackEntry ->
+                val goalId = requireNotNull(backStackEntry.arguments?.getString("goalId"))
                 val viewModel: app.dopedgoal.ui.goaldetail.GoalDetailViewModel = viewModel(
                     factory = app.dopedgoal.ui.goaldetail.GoalDetailViewModelFactory(goalId),
                 )
