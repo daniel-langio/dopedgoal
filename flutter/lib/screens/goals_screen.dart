@@ -5,6 +5,7 @@ import '../theme.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/goal_card.dart';
 import 'create_goal_screen.dart';
+import 'goal_detail_screen.dart';
 
 class GoalsScreen extends StatelessWidget {
   const GoalsScreen({super.key});
@@ -28,7 +29,12 @@ class GoalsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: goals.length,
         separatorBuilder: (_, _) => const SizedBox(height: 16),
-        itemBuilder: (context, i) => GoalCard(goal: goals[i]),
+        itemBuilder: (context, i) => GoalCard(
+          goal: goals[i],
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => GoalDetailScreen(goalId: goals[i].id)),
+          ),
+        ),
       ),
     );
   }

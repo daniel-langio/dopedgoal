@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 
-enum GoalCategory { health, learning, career, creative, social, personal }
+enum GoalCategory {
+  health,
+  learning,
+  career,
+  creative,
+  social,
+  personal;
+
+  static GoalCategory fromName(String name) =>
+      GoalCategory.values.firstWhere((c) => c.name == name, orElse: () => GoalCategory.personal);
+}
 
 extension CategoryLabel on GoalCategory {
   String get label => switch (this) {
@@ -37,8 +47,22 @@ class Task {
 
   bool get isComplete => completedAt != null;
 
-  Task copyWith({DateTime? completedAt}) =>
-      Task(id: id, name: name, completedAt: completedAt ?? this.completedAt);
+  Task markComplete() => Task(id: id, name: name, completedAt: DateTime.now());
+  Task markIncomplete() => Task(id: id, name: name);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'completedAt': completedAt?.toIso8601String(),
+      };
+
+  factory Task.fromJson(Map<String, dynamic> json) => Task(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        completedAt: json['completedAt'] == null
+            ? null
+            : DateTime.parse(json['completedAt'] as String),
+      );
 }
 
 /// A goal is a wall: a fixed list of tasks/bricks, built up as tasks complete.
@@ -67,6 +91,41 @@ class Goal {
   int get placedCount => tasks.where((t) => t.isComplete).length;
   bool get isAchieved => placedCount == total;
   double get progress => total == 0 ? 0 : placedCount / total;
+
+  Goal copyWith({List<Task>? tasks}) => Goal(
+        id: id,
+        name: name,
+        category: category,
+        emoji: emoji,
+        cohesion: cohesion,
+        wallSeed: wallSeed,
+        createdAt: createdAt,
+        tasks: tasks ?? this.tasks,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'category': category.name,
+        'emoji': emoji,
+        'cohesion': cohesion,
+        'wallSeed': wallSeed,
+        'createdAt': createdAt.toIso8601String(),
+        'tasks': tasks.map((t) => t.toJson()).toList(),
+      };
+
+  factory Goal.fromJson(Map<String, dynamic> json) => Goal(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        category: GoalCategory.fromName(json['category'] as String),
+        emoji: json['emoji'] as String,
+        cohesion: (json['cohesion'] as num).toDouble(),
+        wallSeed: json['wallSeed'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        tasks: (json['tasks'] as List<dynamic>)
+            .map((t) => Task.fromJson(t as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
 /// One completed task, as it shows up in History — a task plus the goal it
