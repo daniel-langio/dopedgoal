@@ -1,0 +1,43 @@
+name: Flutter Bump Major Version
+
+# Manual only — this is the one way versionMajor changes. Every ordinary
+# commit only ever bumps versionMinor (see flutter-build-apk.yml).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Bump major version, reset minor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Bump versionMajor, reset versionMinor to 0
+        run: |
+          set -euo pipefail
+
+          file="flutter/version.properties"
+          major="$(sed -n 's/^versionMajor=//p' "$file" | tr -d '[:space:]')"
+          if [[ ! "$major" =~ ^[0-9]+$ ]]; then
+            echo "::error::$file has a malformed versionMajor: '$major'"
+            exit 1
+          fi
+          next_major=$((major + 1))
+
+          sed -i "s/^versionMajor=.*/versionMajor=${next_major}/" "$file"
+          sed -i "s/^versionMinor=.*/versionMinor=0/" "$file"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$file"
+          # [skip ci]: this only changes the version file. The next real
+          # commit touching flutter/** builds and tags v${next_major}.0.
+          git commit -m "chore(flutter): bump major version to v${next_major}.0 [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+          echo "### Bumped to v${next_major}.0" >> "$GITHUB_STEP_SUMMARY"
