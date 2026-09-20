@@ -103,15 +103,34 @@ jobs:
             echo "| versionCode (build number) | \`${build_number}\` (commit count) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Debug-signed: installable for testing, not distributable. No release
-      # keystore/signing story exists for this app yet.
-      - name: Build debug APK
+      # Release builds are signed with a persistent keystore so installing a
+      # new version updates the old one instead of requiring an uninstall.
+      # Only a push to main gets that: PR/manual runs stay debug-signed,
+      # unsigned-for-distribution, same as before.
+      - name: Set up release signing
+        if: ${{ github.event_name == 'push' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=release.keystore.jks
+          storePassword=${KEYSTORE_PASSWORD}
+          keyPassword=${KEYSTORE_PASSWORD}
+          keyAlias=${KEY_ALIAS}
+          EOF
+
+      - name: Build APK
         env:
           VERSION_NAME: ${{ steps.version.outputs.version_name }}
           BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+          BUILD_MODE: ${{ github.event_name == 'push' && 'release' || 'debug' }}
         run: |
           set -euo pipefail
-          flutter build apk --debug \
+          flutter build apk --$BUILD_MODE \
             --build-name="$VERSION_NAME" \
             --build-number="$BUILD_NUMBER"
 
@@ -119,9 +138,10 @@ jobs:
         id: apk
         env:
           APK_NAME: ${{ steps.version.outputs.apk_name }}
+          BUILD_MODE: ${{ github.event_name == 'push' && 'release' || 'debug' }}
         run: |
           set -euo pipefail
-          built="build/app/outputs/flutter-apk/app-debug.apk"
+          built="build/app/outputs/flutter-apk/app-${BUILD_MODE}.apk"
           if [[ ! -f "$built" ]]; then
             echo "::error::no APK was produced"
             exit 1
