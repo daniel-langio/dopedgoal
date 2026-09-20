@@ -1,5 +1,9 @@
 # Doped Goal
 
+<p align="center">
+  <img src="flutter/assets/icon/logo.png" width="160" alt="Doped Goal logo — four brick material swatches on a dark ground">
+</p>
+
 A goal is a wall. A task is a brick. Finishing a task places its brick, and
 finishing every task fills the wall.
 
@@ -29,8 +33,9 @@ flutter build apk --debug   # build an installable debug APK
 ## Releases
 
 Every push to `main` that touches `flutter/**` builds a debug APK through
-[`build-apk.yml`](.github/workflows/build-apk.yml) and uploads it as a build
-artifact. Nothing about the version is maintained by hand.
+[`build-apk.yml`](.github/workflows/build-apk.yml), uploads it as a build
+artifact, and tags + publishes it as a GitHub release. Nothing about the
+version is maintained by hand.
 
 | | Source | Why |
 | --- | --- | --- |
