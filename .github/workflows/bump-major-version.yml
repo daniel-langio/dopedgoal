@@ -1,7 +1,7 @@
-name: Flutter Bump Major Version
+name: Bump Major Version
 
 # Manual only — this is the one way versionMajor changes. Every ordinary
-# commit only ever bumps versionMinor (see flutter-build-apk.yml).
+# commit only ever bumps versionMinor (see build-apk.yml).
 on:
   workflow_dispatch:
 

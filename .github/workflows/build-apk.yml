@@ -3,10 +3,17 @@ name: Build APK
 on:
   push:
     branches: [main]
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/build-apk.yml'
+  pull_request:
+    paths:
+      - 'flutter/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
-# Never cancel a release build in flight: it tags and pushes, and a half-finished
-# run is worse than a slow one.
+# A push-triggered run persists the version bump at the end; don't cut it off
+# mid-flight the way a plain CI job could be.
 concurrency:
   group: build-apk-${{ github.ref }}
   cancel-in-progress: false
@@ -16,71 +23,74 @@ permissions:
 
 jobs:
   build:
-    name: Build and release APK
+    name: Analyze, test and build APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: flutter
 
     steps:
       - uses: actions/checkout@v7
         with:
-          # versionCode is the commit count, and the default shallow clone would
-          # report 1. Without this the APK never becomes installable over the
-          # previous one.
+          # The build number is the commit count, and the default shallow
+          # clone would report 1.
           fetch-depth: 0
 
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: stable
+          cache: true
 
-      # Gate the release on the same checks CI runs, so a broken commit can never
-      # be tagged.
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
 
       - name: Compute version
         id: version
-        env:
-          # The commit message is passed through the environment rather than
-          # interpolated as ${{ }} directly into the script below. A GitHub
-          # expression is pasted in as raw text *before* bash parses the script,
-          # so backticks, $( ) or an unbalanced quote in a commit message would
-          # execute or break the build. Via env, bash treats the value as inert.
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -euo pipefail
 
           # Strictly monotonic without anyone maintaining a counter.
-          version_code="$(git rev-list --count HEAD)"
+          build_number="$(git rev-list --count HEAD)"
 
-          current="$(sed -n 's/^versionName=//p' version.properties | tr -d '[:space:]')"
-          if [[ ! "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::version.properties has a malformed versionName: '$current'"
+          major="$(sed -n 's/^versionMajor=//p' version.properties | tr -d '[:space:]')"
+          minor="$(sed -n 's/^versionMinor=//p' version.properties | tr -d '[:space:]')"
+          if [[ ! "$major" =~ ^[0-9]+$ || ! "$minor" =~ ^[0-9]+$ ]]; then
+            echo "::error::version.properties has a malformed versionMajor/versionMinor: '$major'/'$minor'"
             exit 1
           fi
-          IFS=. read -r major minor patch <<< "$current"
 
-          # Conventional commits decide the increment. Only the subject line is
-          # considered for the type; a BREAKING CHANGE footer may appear anywhere.
-          subject="${COMMIT_MESSAGE%%$'\n'*}"
-
-          if printf '%s\n' "$COMMIT_MESSAGE" | grep -qE '^BREAKING CHANGE:' \
-            || printf '%s' "$subject" | grep -qE '^[a-z]+(\([^)]*\))?!:'; then
-            major=$((major + 1)); minor=0; patch=0; bump=major
-          elif printf '%s' "$subject" | grep -qE '^feat(\([^)]*\))?:'; then
-            minor=$((minor + 1)); patch=0; bump=minor
+          # Minor bumps once per push to main. A PR or manual run builds with
+          # the currently persisted version instead, so it never races the
+          # bump a concurrent push-triggered run is about to commit.
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            next_minor=$((minor + 1))
           else
-            patch=$((patch + 1)); bump=patch
+            next_minor="$minor"
           fi
 
-          version_name="${major}.${minor}.${patch}"
-          apk_name="DopedGoal-${version_name}-${version_code}.apk"
+          version_name="${major}.${next_minor}"
+          apk_name="DopedGoal-${version_name}+${build_number}.apk"
 
           {
+            echo "major=${major}"
+            echo "next_minor=${next_minor}"
             echo "version_name=${version_name}"
-            echo "version_code=${version_code}"
+            echo "build_number=${build_number}"
             echo "apk_name=${apk_name}"
           } >> "$GITHUB_OUTPUT"
 
@@ -89,38 +99,21 @@ jobs:
             echo ""
             echo "| | |"
             echo "|---|---|"
-            echo "| versionName | \`${current}\` → \`${version_name}\` (${bump}) |"
-            echo "| versionCode | \`${version_code}\` (commit count) |"
+            echo "| versionName | \`${major}.${minor}\` → \`${version_name}\` |"
+            echo "| versionCode (build number) | \`${build_number}\` (commit count) |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Decode release keystore
-        id: keystore
+      # Debug-signed: installable for testing, not distributable. No release
+      # keystore/signing story exists for this app yet.
+      - name: Build debug APK
         env:
-          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
         run: |
           set -euo pipefail
-          if [[ -z "${KEYSTORE_BASE64:-}" ]]; then
-            echo "::notice::No release keystore configured. The APK will be signed with the debug key: installable for testing, not distributable."
-            exit 0
-          fi
-          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "${RUNNER_TEMP}/release.jks"
-          echo "path=${RUNNER_TEMP}/release.jks" >> "$GITHUB_OUTPUT"
-
-      - name: Build release APK
-        env:
-          APP_VERSION_NAME: ${{ steps.version.outputs.version_name }}
-          APP_VERSION_CODE: ${{ steps.version.outputs.version_code }}
-          # Absent when the keystore secrets are not configured, in which case
-          # the build falls back to the debug key.
-          DOPEDGOAL_KEYSTORE_FILE: ${{ steps.keystore.outputs.path }}
-          DOPEDGOAL_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          DOPEDGOAL_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          DOPEDGOAL_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          ./gradlew :app:assembleRelease \
-            -PappVersionName="$APP_VERSION_NAME" \
-            -PappVersionCode="$APP_VERSION_CODE"
+          flutter build apk --debug \
+            --build-name="$VERSION_NAME" \
+            --build-number="$BUILD_NUMBER"
 
       - name: Name the APK
         id: apk
@@ -128,14 +121,14 @@ jobs:
           APK_NAME: ${{ steps.version.outputs.apk_name }}
         run: |
           set -euo pipefail
-          built="$(find app/build/outputs/apk/release -name '*.apk' -print -quit)"
-          if [[ -z "$built" ]]; then
+          built="build/app/outputs/flutter-apk/app-debug.apk"
+          if [[ ! -f "$built" ]]; then
             echo "::error::no APK was produced"
             exit 1
           fi
           mkdir -p artifacts
           cp "$built" "artifacts/${APK_NAME}"
-          echo "path=artifacts/${APK_NAME}" >> "$GITHUB_OUTPUT"
+          echo "path=flutter/artifacts/${APK_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
@@ -147,34 +140,25 @@ jobs:
 
       # Last, and only for real pushes: the bump is persisted only once a
       # buildable, tested APK actually exists.
-      - name: Tag and publish GitHub release
+      - name: Persist minor version bump
         if: ${{ github.event_name == 'push' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_NAME: ${{ steps.version.outputs.version_name }}
-          APK_PATH: ${{ steps.apk.outputs.path }}
+          MAJOR: ${{ steps.version.outputs.major }}
+          NEXT_MINOR: ${{ steps.version.outputs.next_minor }}
         run: |
           set -euo pipefail
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          # Keep the explanatory header, replace only the value.
-          sed -i "s/^versionName=.*/versionName=${VERSION_NAME}/" version.properties
+          sed -i "s/^versionMinor=.*/versionMinor=${NEXT_MINOR}/" version.properties
 
           git add version.properties
           # [skip ci] is load-bearing. Without it this push re-triggers this
           # workflow, which bumps the version again, forever.
-          git commit -m "chore(release): v${VERSION_NAME} [skip ci]"
-          git tag -a "v${VERSION_NAME}" -m "v${VERSION_NAME}"
+          git commit -m "chore(flutter): bump version to v${MAJOR}.${NEXT_MINOR} [skip ci]"
 
-          # A human push can land while this build runs (the concurrency group
-          # only serialises this workflow against itself). Rebasing the bump
+          # A human push can land while this build runs. Rebasing the bump
           # commit onto it is safe: this commit touches version.properties alone.
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-          git push origin "v${VERSION_NAME}"
-
-          gh release create "v${VERSION_NAME}" "$APK_PATH" \
-            --title "v${VERSION_NAME}" \
-            --generate-notes
