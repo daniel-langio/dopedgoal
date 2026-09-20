@@ -8,8 +8,28 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  test('a fresh repository starts with no goals', () async {
+    final repo = GoalsRepository();
+    await pumpEventQueue();
+
+    expect(repo.goals, isEmpty);
+    expect(repo.history, isEmpty);
+  });
+
   test('toggling a task persists across repository instances', () async {
     final repo1 = GoalsRepository();
+    await pumpEventQueue();
+
+    repo1.addGoal(Goal(
+      id: 'goal-1',
+      name: 'GOAL ONE',
+      category: GoalCategory.personal,
+      emoji: '🧪',
+      cohesion: 0.5,
+      wallSeed: 'TEST-0001',
+      createdAt: DateTime.now(),
+      tasks: [Task(id: 'task-1', name: 'A task')],
+    ));
     await pumpEventQueue();
 
     final goal = repo1.goals.first;
