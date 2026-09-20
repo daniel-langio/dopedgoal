@@ -4,9 +4,10 @@ import '../theme.dart';
 import 'wall_preview.dart';
 
 class GoalCard extends StatelessWidget {
-  const GoalCard({super.key, required this.goal});
+  const GoalCard({super.key, required this.goal, this.onTap});
 
   final Goal goal;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,9 @@ class GoalCard extends StatelessWidget {
         ),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Stack(
@@ -109,6 +112,7 @@ class GoalCard extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
